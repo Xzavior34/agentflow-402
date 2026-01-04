@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 
 export default function Demo() {
   return (
-    <div className="min-h-screen py-20 px-4">
-      <div className="container mx-auto h-full flex flex-col">
+    <div className="min-h-screen py-16 sm:py-20 px-4 pb-20">
+      <div className="container mx-auto h-full flex flex-col max-w-7xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -22,7 +22,7 @@ export default function Demo() {
             <span className="font-mono text-sm text-neon-gold">Real Blockchain Transactions</span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
             x402 <span className="text-neon-cyan">Demo Console</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -71,7 +71,7 @@ export default function Demo() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex-1 min-h-[600px]"
+          className="flex-1 min-h-[500px] sm:min-h-[600px]"
         >
           <DemoConsole />
         </motion.div>

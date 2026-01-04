@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RotateCcw, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TerminalLog, LogEntry, LogType } from './TerminalLog';
+import { TransactionReceipt } from './TransactionReceipt';
 import { useWallet } from '@/hooks/useWallet';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { toast } from 'sonner';
@@ -10,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import confetti from 'canvas-confetti';
 
 const DEMO_SERVICE_ADDRESS = '0x000000000000000000000000000000000000dead';
+const DEMO_SERVICE_NAME = 'Weather Oracle v1';
 const DEMO_COST_CRO = '0.0001';
 
 type DemoStep = 'idle' | 'awaiting_payment' | 'verifying' | 'success';
@@ -19,6 +21,7 @@ interface DemoState {
   clientLogs: LogEntry[];
   serverLogs: LogEntry[];
   txHash: string | null;
+  showReceipt: boolean;
 }
 
 const createLogEntry = (type: LogType, message: string, data?: string): LogEntry => ({
@@ -38,6 +41,7 @@ export function DemoConsole() {
     clientLogs: [],
     serverLogs: [],
     txHash: null,
+    showReceipt: false,
   });
 
   const addClientLog = useCallback((type: LogType, message: string, data?: string) => {
@@ -174,6 +178,11 @@ export function DemoConsole() {
       playSuccessChime();
       triggerConfetti();
       
+      // Show receipt after 1 second delay
+      setTimeout(() => {
+        setState(prev => ({ ...prev, showReceipt: true }));
+      }, 1000);
+      
       toast.success('🎉 x402 Flow Complete!', {
         description: 'The agent successfully paid for and received data.',
         duration: 5000,
@@ -195,8 +204,13 @@ export function DemoConsole() {
       clientLogs: [],
       serverLogs: [],
       txHash: null,
+      showReceipt: false,
     });
     toast.info('Demo reset. Ready to start again!');
+  }, []);
+
+  const handleCloseReceipt = useCallback(() => {
+    setState(prev => ({ ...prev, showReceipt: false }));
   }, []);
 
   const getStepStatus = () => {
@@ -324,6 +338,16 @@ export function DemoConsole() {
           />
         ))}
       </div>
+
+      {/* Transaction Receipt Modal */}
+      <TransactionReceipt
+        isOpen={state.showReceipt}
+        onClose={handleCloseReceipt}
+        txHash={state.txHash || ''}
+        explorerUrl={explorerUrl}
+        amount={DEMO_COST_CRO}
+        serviceName={DEMO_SERVICE_NAME}
+      />
     </div>
   );
 }
