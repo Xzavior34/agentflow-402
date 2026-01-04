@@ -4,6 +4,7 @@ import { Play, RotateCcw, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TerminalLog, LogEntry, LogType } from './TerminalLog';
 import { useWallet } from '@/hooks/useWallet';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import confetti from 'canvas-confetti';
@@ -30,6 +31,7 @@ const createLogEntry = (type: LogType, message: string, data?: string): LogEntry
 
 export function DemoConsole() {
   const { isConnected, address, sendTransaction, connect, explorerUrl } = useWallet();
+  const { playTerminalBeep, playErrorBeep, playPaymentBeep, playSuccessChime } = useSoundEffects();
   
   const [state, setState] = useState<DemoState>({
     step: 'idle',
@@ -39,18 +41,20 @@ export function DemoConsole() {
   });
 
   const addClientLog = useCallback((type: LogType, message: string, data?: string) => {
+    playTerminalBeep();
     setState(prev => ({
       ...prev,
       clientLogs: [...prev.clientLogs, createLogEntry(type, message, data)],
     }));
-  }, []);
+  }, [playTerminalBeep]);
 
   const addServerLog = useCallback((type: LogType, message: string, data?: string) => {
+    playTerminalBeep();
     setState(prev => ({
       ...prev,
       serverLogs: [...prev.serverLogs, createLogEntry(type, message, data)],
     }));
-  }, []);
+  }, [playTerminalBeep]);
 
   const setStep = useCallback((step: DemoStep) => {
     setState(prev => ({ ...prev, step }));
@@ -84,6 +88,7 @@ export function DemoConsole() {
     // Step 2: Server responds with 402 - show while waiting for wallet
     addServerLog('info', 'Incoming request from Agent-Client...');
     addServerLog('warning', 'No valid payment token detected');
+    playErrorBeep();
     addServerLog('error', 'HTTP/1.1 402 Payment Required', JSON.stringify({
       error: 'PAYMENT_REQUIRED',
       invoice: {
@@ -98,8 +103,10 @@ export function DemoConsole() {
     }, null, 2));
 
     setStep('awaiting_payment');
+    playErrorBeep();
     addClientLog('error', 'Received HTTP 402: Payment Required');
     addClientLog('info', `Invoice: ${DEMO_COST_CRO} TCRO to ${DEMO_SERVICE_ADDRESS.slice(0, 10)}...`);
+    playPaymentBeep();
     addClientLog('payment', 'Initiating wallet transaction...');
     addServerLog('warning', 'Awaiting blockchain payment...');
 
@@ -164,6 +171,7 @@ export function DemoConsole() {
       addClientLog('info', 'x402 transaction complete.');
 
       setStep('success');
+      playSuccessChime();
       triggerConfetti();
       
       toast.success('🎉 x402 Flow Complete!', {
@@ -178,7 +186,7 @@ export function DemoConsole() {
       setStep('idle');
       toast.error('Transaction failed');
     }
-  }, [isConnected, address, sendTransaction, addClientLog, addServerLog, setStep]);
+  }, [isConnected, address, sendTransaction, addClientLog, addServerLog, setStep, playErrorBeep, playPaymentBeep, playSuccessChime]);
 
   // Reset Demo
   const handleReset = useCallback(() => {
