@@ -14,7 +14,7 @@ AgentMarket is a decentralized middleware that allows AI Agents to pay for APIs 
 
 ## 🛠 Tech Stack
 - **Frontend:** Next.js (App Router), Tailwind CSS
-- **Blockchain:** Cronos Testnet (Chain ID: 338)
+- **Blockchain:** Cronos Testnet (Chain ID: 338),
 - **Wallet Integration:** Viem / Wagmi
 - **Standard:** HTTP 402 (Payment Required) Simulation
 
