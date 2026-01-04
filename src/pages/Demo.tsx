@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { DemoConsole } from '@/components/DemoConsole';
+import { X402FlowDiagram } from '@/components/X402FlowDiagram';
 import { ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -53,6 +54,16 @@ export default function Demo() {
             <ExternalLink className="w-4 h-4" />
             Get Testnet CRO
           </Button>
+        </motion.div>
+
+        {/* How x402 Works Diagram */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8"
+        >
+          <X402FlowDiagram />
         </motion.div>
 
         {/* Demo Console */}
