@@ -7,12 +7,12 @@ const CRONOS_TESTNET = {
   chainId: '0x152', // 338 in hex
   chainName: 'Cronos Testnet',
   nativeCurrency: {
-    name: 'Test CRO',
+    name: 'TCRO',
     symbol: 'TCRO',
     decimals: 18,
   },
   rpcUrls: ['https://evm-t3.cronos.org/'],
-  blockExplorerUrls: ['https://explorer.cronos.org/testnet/'],
+  blockExplorerUrls: ['https://explorer.cronos.org/testnet'],
 };
 
 interface WalletState {
