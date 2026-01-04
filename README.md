@@ -26,7 +26,7 @@ AgentMarket is a decentralized middleware that allows AI Agents to pay for APIs 
 ## ⚙️ How to Run Locally
 ```bash
 # Clone the repo
-git clone [https://github.com/Xzavior34/agent-market.git](https://github.com/Xzavior34/agent-market.git)
+git clone https://github.com/Xzavior34/agent-market.git
 
 # Install dependencies
 npm install
