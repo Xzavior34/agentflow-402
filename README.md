@@ -6,8 +6,8 @@
 ![Network](https://img.shields.io/badge/Network-Cronos_Testnet-blue)
 ![Status](https://img.shields.io/badge/Status-Live_Beta-green)
 
-**Live Demo:** [https://youtu.be/ckvuhVjpvF4]
-**Demo Video:** [INSERT_YOUR_YOUTUBE_LINK_HERE]
+**Live Demo:** [https://agentflow-402.vercel.app/]
+**Demo Video:** [https://youtu.be/ckvuhVjpvF4]
 
 ## 💡 The Vision
 AgentMarket is a decentralized middleware that allows AI Agents to pay for APIs and data streams using the **HTTP 402** standard. It replaces credit cards with instant, autonomous Cronos transactions.
