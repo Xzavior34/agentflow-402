@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
+import { LiveEconomyTicker } from "@/components/LiveEconomyTicker";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import Demo from "./pages/Demo";
@@ -26,7 +27,7 @@ const App = () => (
         }}
       />
       <BrowserRouter>
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground pb-12">
           <Header />
           <main className="pt-16">
             <Routes>
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
+          <LiveEconomyTicker />
         </div>
       </BrowserRouter>
     </TooltipProvider>
