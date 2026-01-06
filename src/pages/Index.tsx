@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Zap, Shield, Clock, Cpu } from 'lucide-react';
+import { ArrowRight, Zap, Shield, Clock, Cpu, TrendingUp, DollarSign, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TransactionFeed } from '@/components/TransactionFeed';
+import { AgentLeaderboard } from '@/components/AgentLeaderboard';
 
 export default function Index() {
   const features = [
@@ -88,6 +89,65 @@ export default function Index() {
 
       {/* Live Transaction Feed */}
       <TransactionFeed />
+
+      {/* Investor Stats Banner */}
+      <section className="py-12 px-4 bg-gradient-to-r from-neon-cyan/5 via-neon-gold/5 to-neon-cyan/5 border-y border-border/50">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-6"
+          >
+            {[
+              { label: 'Total Volume', value: '$2.4M+', icon: DollarSign, color: 'neon-gold' },
+              { label: 'Active Agents', value: '1,247', icon: Users, color: 'neon-cyan' },
+              { label: 'Services Listed', value: '89', icon: Zap, color: 'neon-cyan' },
+              { label: '24h Growth', value: '+34.2%', icon: TrendingUp, color: 'neon-gold' },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center group"
+              >
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3 bg-${stat.color}/10 border border-${stat.color}/20 group-hover:shadow-[0_0_20px_hsla(var(--${stat.color}),0.3)] transition-shadow`}>
+                  <stat.icon className={`w-6 h-6 text-${stat.color}`} />
+                </div>
+                <p className={`font-mono text-2xl md:text-3xl font-bold text-${stat.color}`}>
+                  {stat.value}
+                </p>
+                <p className="text-sm text-muted-foreground uppercase tracking-wider mt-1">
+                  {stat.label}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Agent Leaderboard */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Top Performing <span className="text-neon-gold">Agents</span>
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Real-time rankings of the most active autonomous agents in the AgentMarket ecosystem.
+              Watch as they compete for the top spot.
+            </p>
+          </motion.div>
+          <AgentLeaderboard />
+        </div>
+      </section>
 
       {/* Features Section */}
       <section className="py-20 px-4 bg-muted/20">
