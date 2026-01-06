@@ -54,18 +54,32 @@ export function Header() {
         <div className="flex items-center gap-4">
           {isConnected ? (
             <div className="hidden sm:flex items-center gap-3">
-              <div className="flex flex-col items-end">
-                <span className="font-mono text-xs text-neon-cyan">
-                  {formatBalance(balance)} CRO
-                </span>
+              {/* Enhanced Balance Display */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/30 shadow-[0_0_15px_hsla(var(--neon-cyan),0.15)]"
+              >
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                  <span className="font-mono text-sm font-bold text-neon-cyan">
+                    {formatBalance(balance)}
+                  </span>
+                  <span className="text-xs text-neon-cyan/70">TCRO</span>
+                </div>
+                <div className="w-px h-4 bg-border" />
                 <span className="font-mono text-xs text-muted-foreground">
                   {formatAddress(address!)}
                 </span>
-              </div>
+              </motion.div>
               {!isCorrectNetwork && (
-                <span className="text-xs text-neon-gold px-2 py-1 bg-neon-gold/10 rounded border border-neon-gold/30">
+                <motion.span 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs text-neon-gold px-2 py-1 bg-neon-gold/10 rounded border border-neon-gold/30 animate-pulse"
+                >
                   Wrong Network
-                </span>
+                </motion.span>
               )}
               <Button
                 variant="outline"
@@ -80,10 +94,10 @@ export function Header() {
             <Button
               onClick={connect}
               disabled={isConnecting}
-              className="bg-neon-cyan text-background hover:bg-neon-cyan/90 font-mono"
+              className="bg-neon-cyan text-background hover:bg-neon-cyan/90 font-mono shadow-[0_0_20px_hsla(var(--neon-cyan),0.3)] hover:shadow-[0_0_30px_hsla(var(--neon-cyan),0.5)] transition-shadow"
             >
               <Wallet className="w-4 h-4 mr-2" />
-              {isConnecting ? 'Connecting...' : 'Connect'}
+              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
             </Button>
           )}
 
