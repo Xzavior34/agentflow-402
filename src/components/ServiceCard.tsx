@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { 
-  Image, Brain, Cloud, Wallet, Languages, TrendingUp, Zap 
+  Image, Brain, Cloud, Wallet, Languages, TrendingUp, Zap, Star, CheckCircle 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -14,6 +14,13 @@ interface ServiceCardProps {
   category: string;
   icon: string;
   onSelect?: (service: ServiceCardProps) => void;
+  // Extended on-chain props
+  walletAddress?: string;
+  reputationScore?: number;
+  completedJobs?: number;
+  totalEarnings?: string;
+  capabilities?: string[];
+  isOnChain?: boolean;
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -24,10 +31,16 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   languages: Languages,
   'trending-up': TrendingUp,
   zap: Zap,
+  '🤖': Brain,
+  '💬': Languages,
+  '📊': TrendingUp,
+  '⛓️': Wallet,
+  '🔧': Zap,
 };
 
 export function ServiceCard({ 
-  id, name, description, provider_id, cost_cro, category, icon, onSelect 
+  id, name, description, provider_id, cost_cro, category, icon, onSelect,
+  walletAddress, reputationScore, completedJobs, isOnChain
 }: ServiceCardProps) {
   const IconComponent = iconMap[icon] || Zap;
 
@@ -36,6 +49,9 @@ export function ServiceCard({
       description: `Response time: ${Math.floor(Math.random() * 50 + 10)}ms`,
     });
   };
+
+  // Format address for display
+  const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   return (
     <motion.div
@@ -49,9 +65,17 @@ export function ServiceCard({
         <div className="p-3 rounded-lg bg-neon-cyan/10 border border-neon-cyan/20 group-hover:neon-glow transition-all">
           <IconComponent className="w-6 h-6 text-neon-cyan" />
         </div>
-        <span className="text-xs font-mono px-2 py-1 rounded bg-muted text-muted-foreground uppercase">
-          {category}
-        </span>
+        <div className="flex items-center gap-2">
+          {isOnChain && (
+            <span className="flex items-center gap-1 text-xs font-mono px-2 py-1 rounded bg-neon-gold/10 text-neon-gold border border-neon-gold/20">
+              <CheckCircle className="w-3 h-3" />
+              On-Chain
+            </span>
+          )}
+          <span className="text-xs font-mono px-2 py-1 rounded bg-muted text-muted-foreground uppercase">
+            {category}
+          </span>
+        </div>
       </div>
 
       {/* Content */}
@@ -60,11 +84,31 @@ export function ServiceCard({
         <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
       </div>
 
+      {/* Reputation & Stats (for on-chain agents) */}
+      {isOnChain && reputationScore !== undefined && (
+        <div className="flex items-center gap-4 py-2 border-t border-b border-border/50">
+          <div className="flex items-center gap-1.5">
+            <Star className="w-4 h-4 text-neon-gold" />
+            <span className="font-mono text-sm text-neon-gold">{reputationScore}</span>
+            <span className="text-xs text-muted-foreground">rep</span>
+          </div>
+          {completedJobs !== undefined && (
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-neon-cyan" />
+              <span className="font-mono text-sm">{completedJobs}</span>
+              <span className="text-xs text-muted-foreground">jobs</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Provider & Cost */}
       <div className="flex items-center justify-between pt-4 border-t border-border">
         <div>
           <p className="text-xs text-muted-foreground">Provider</p>
-          <p className="font-mono text-sm text-neon-cyan">{provider_id}</p>
+          <p className="font-mono text-sm text-neon-cyan">
+            {walletAddress ? formatAddress(walletAddress) : provider_id}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Cost</p>
@@ -87,7 +131,7 @@ export function ServiceCard({
           className="flex-1 bg-neon-cyan text-background hover:bg-neon-cyan/90 font-mono"
           onClick={() => onSelect?.({ id, name, description, provider_id, cost_cro, category, icon })}
         >
-          Purchase
+          {isOnChain ? 'Hire' : 'Purchase'}
         </Button>
       </div>
     </motion.div>
