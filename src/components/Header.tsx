@@ -14,6 +14,7 @@ export function Header() {
     { path: '/', label: 'Terminal' },
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/demo', label: 'x402 Demo' },
+    { path: '/register', label: 'Register Agent' },
   ];
 
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;

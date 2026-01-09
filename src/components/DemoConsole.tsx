@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RotateCcw, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,17 @@ import { TerminalLog, LogEntry, LogType } from './TerminalLog';
 import { TransactionReceipt } from './TransactionReceipt';
 import { useWallet } from '@/hooks/useWallet';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useHireAgent } from '@/hooks/useAgentContract';
+import { agentMarket, AgentMarketClient } from '@/utils/AgentSDK';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import confetti from 'canvas-confetti';
+import { CONTRACT_CONFIG } from '@/config/contract';
 
-const DEMO_SERVICE_ADDRESS = '0x000000000000000000000000000000000000dead';
+// Demo service configuration
+const DEMO_SERVICE_ADDRESS = CONTRACT_CONFIG.addresses.agentMarket !== '0x0000000000000000000000000000000000000000'
+  ? CONTRACT_CONFIG.addresses.agentMarket 
+  : '0x000000000000000000000000000000000000dead'; // Fallback for pre-deployment
 const DEMO_SERVICE_NAME = 'Weather Oracle v1';
 const DEMO_COST_CRO = '0.0001';
 
@@ -22,6 +28,7 @@ interface DemoState {
   serverLogs: LogEntry[];
   txHash: string | null;
   showReceipt: boolean;
+  useOnChainHire: boolean; // Toggle between direct transfer and hireAgent
 }
 
 const createLogEntry = (type: LogType, message: string, data?: string): LogEntry => ({
@@ -35,6 +42,7 @@ const createLogEntry = (type: LogType, message: string, data?: string): LogEntry
 export function DemoConsole() {
   const { isConnected, address, sendTransaction, connect, explorerUrl } = useWallet();
   const { playTerminalBeep, playErrorBeep, playPaymentBeep, playSuccessChime } = useSoundEffects();
+  const { hire, isHiring, txHash: hireTxHash } = useHireAgent();
   
   const [state, setState] = useState<DemoState>({
     step: 'idle',
@@ -42,6 +50,7 @@ export function DemoConsole() {
     serverLogs: [],
     txHash: null,
     showReceipt: false,
+    useOnChainHire: CONTRACT_CONFIG.addresses.agentMarket !== '0x0000000000000000000000000000000000000000',
   });
 
   const addClientLog = useCallback((type: LogType, message: string, data?: string) => {
@@ -73,6 +82,32 @@ export function DemoConsole() {
     });
   };
 
+  // Handle on-chain hire using the SDK
+  const handleOnChainHire = async (): Promise<string | null> => {
+    try {
+      // Connect SDK if not connected
+      if (!agentMarket.isConnected()) {
+        await agentMarket.connect();
+      }
+
+      addClientLog('payment', 'Calling hireAgent() on AgentMarket contract...');
+      addServerLog('info', 'Awaiting on-chain hire transaction...');
+
+      const value = AgentMarketClient.parseCRO(DEMO_COST_CRO);
+      const receipt = await agentMarket.hireAgent(DEMO_SERVICE_ADDRESS, value);
+      
+      addClientLog('success', 'hireAgent() transaction confirmed!');
+      addServerLog('payment', `On-chain hire verified! TX: ${receipt.hash.slice(0, 20)}...`);
+      
+      return receipt.hash;
+    } catch (error: any) {
+      console.error('On-chain hire failed:', error);
+      // Fall back to direct transfer
+      addClientLog('warning', 'Contract call failed, falling back to direct transfer...');
+      return null;
+    }
+  };
+
   // Single-click flow: Request -> 402 -> Wallet -> Verify -> Success
   const handleRequestData = useCallback(async () => {
     if (!isConnected) {
@@ -101,7 +136,8 @@ export function DemoConsole() {
         network: 'cronos-testnet',
         payTo: DEMO_SERVICE_ADDRESS,
         validFor: '60s',
-        service: 'weather-data-v1'
+        service: 'weather-data-v1',
+        protocol: state.useOnChainHire ? 'AgentMarket.hireAgent()' : 'direct-transfer'
       },
       message: 'Payment required to access this resource'
     }, null, 2));
@@ -111,14 +147,30 @@ export function DemoConsole() {
     addClientLog('error', 'Received HTTP 402: Payment Required');
     addClientLog('info', `Invoice: ${DEMO_COST_CRO} TCRO to ${DEMO_SERVICE_ADDRESS.slice(0, 10)}...`);
     playPaymentBeep();
-    addClientLog('payment', 'Initiating wallet transaction...');
+    
+    if (state.useOnChainHire) {
+      addClientLog('payment', 'Using AgentMarket protocol for on-chain hire...');
+    } else {
+      addClientLog('payment', 'Initiating wallet transaction...');
+    }
     addServerLog('warning', 'Awaiting blockchain payment...');
 
-    // Step 3: Trigger wallet transaction immediately
+    // Step 3: Trigger wallet transaction
     toast.loading('Sign the transaction in MetaMask...', { id: 'signing' });
 
     try {
-      const txHash = await sendTransaction(DEMO_SERVICE_ADDRESS, DEMO_COST_CRO);
+      let txHash: string | null = null;
+
+      // Try on-chain hire first if enabled
+      if (state.useOnChainHire) {
+        txHash = await handleOnChainHire();
+      }
+
+      // Fall back to direct transfer if on-chain hire fails or is disabled
+      if (!txHash) {
+        txHash = await sendTransaction(DEMO_SERVICE_ADDRESS, DEMO_COST_CRO);
+      }
+
       toast.dismiss('signing');
 
       if (!txHash) {
@@ -167,7 +219,9 @@ export function DemoConsole() {
         payment: {
           verified: true,
           txHash: txHash,
-          amount: DEMO_COST_CRO
+          amount: DEMO_COST_CRO,
+          method: state.useOnChainHire ? 'AgentMarket.hireAgent()' : 'direct-transfer',
+          protocolFee: state.useOnChainHire ? '2%' : '0%'
         }
       }, null, 2));
 
@@ -184,7 +238,9 @@ export function DemoConsole() {
       }, 1000);
       
       toast.success('🎉 x402 Flow Complete!', {
-        description: 'The agent successfully paid for and received data.',
+        description: state.useOnChainHire 
+          ? 'Agent hired via on-chain protocol with reputation update!'
+          : 'The agent successfully paid for and received data.',
         duration: 5000,
       });
 
@@ -195,7 +251,7 @@ export function DemoConsole() {
       setStep('idle');
       toast.error('Transaction failed');
     }
-  }, [isConnected, address, sendTransaction, addClientLog, addServerLog, setStep, playErrorBeep, playPaymentBeep, playSuccessChime]);
+  }, [isConnected, address, sendTransaction, addClientLog, addServerLog, setStep, playErrorBeep, playPaymentBeep, playSuccessChime, state.useOnChainHire]);
 
   // Reset Demo
   const handleReset = useCallback(() => {
@@ -205,6 +261,7 @@ export function DemoConsole() {
       serverLogs: [],
       txHash: null,
       showReceipt: false,
+      useOnChainHire: CONTRACT_CONFIG.addresses.agentMarket !== '0x0000000000000000000000000000000000000000',
     });
     toast.info('Demo reset. Ready to start again!');
   }, []);

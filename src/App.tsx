@@ -8,6 +8,7 @@ import { LiveEconomyTicker } from "@/components/LiveEconomyTicker";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import Demo from "./pages/Demo";
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/demo" element={<Demo />} />
+              <Route path="/register" element={<Register />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
