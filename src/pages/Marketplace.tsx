@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Blocks, Database } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ServiceCard } from '@/components/ServiceCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useOnChainServices, useProtocolStats } from '@/hooks/useAgentContract';
+import type { ServiceFromAgent } from '@/types/agent';
 
 interface Service {
   id: string;
@@ -18,15 +20,31 @@ interface Service {
   icon: string;
 }
 
+// Combined service type for UI
+interface CombinedService extends Service {
+  walletAddress?: string;
+  reputationScore?: number;
+  completedJobs?: number;
+  totalEarnings?: string;
+  capabilities?: string[];
+  isOnChain?: boolean;
+}
+
 const categories = ['All', 'AI', 'NLP', 'Data', 'Blockchain'];
 
 export default function Marketplace() {
-  const [services, setServices] = useState<Service[]>([]);
+  const [offChainServices, setOffChainServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showOnChainOnly, setShowOnChainOnly] = useState(false);
   const navigate = useNavigate();
 
+  // On-chain data from smart contract
+  const { services: onChainServices, loading: onChainLoading } = useOnChainServices();
+  const { stats } = useProtocolStats();
+
+  // Fetch off-chain services from Supabase
   useEffect(() => {
     const fetchServices = async () => {
       const { data, error } = await supabase
@@ -39,7 +57,7 @@ export default function Marketplace() {
         console.error('Error fetching services:', error);
         toast.error('Failed to load services');
       } else {
-        setServices(data || []);
+        setOffChainServices(data || []);
       }
       setLoading(false);
     };
@@ -47,7 +65,33 @@ export default function Marketplace() {
     fetchServices();
   }, []);
 
-  const filteredServices = services.filter(service => {
+  // Combine on-chain and off-chain services
+  const combinedServices: CombinedService[] = useMemo(() => {
+    const onChain: CombinedService[] = onChainServices.map((agent: ServiceFromAgent) => ({
+      ...agent,
+      isOnChain: true,
+    }));
+
+    const offChain: CombinedService[] = offChainServices.map(service => ({
+      ...service,
+      isOnChain: false,
+    }));
+
+    if (showOnChainOnly) {
+      return onChain;
+    }
+
+    // Merge and deduplicate by name
+    const all = [...onChain, ...offChain];
+    const seen = new Set<string>();
+    return all.filter(s => {
+      if (seen.has(s.name.toLowerCase())) return false;
+      seen.add(s.name.toLowerCase());
+      return true;
+    });
+  }, [onChainServices, offChainServices, showOnChainOnly]);
+
+  const filteredServices = combinedServices.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          service.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || service.category === selectedCategory;
@@ -60,6 +104,8 @@ export default function Marketplace() {
     });
     navigate('/demo');
   };
+
+  const isLoading = loading || onChainLoading;
 
   return (
     <div className="min-h-screen py-20 px-4">
@@ -97,6 +143,21 @@ export default function Marketplace() {
             />
           </div>
 
+          {/* On-Chain Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`font-mono whitespace-nowrap gap-2 ${
+              showOnChainOnly
+                ? 'bg-neon-gold/10 border-neon-gold text-neon-gold'
+                : 'border-border hover:border-neon-gold/50'
+            }`}
+            onClick={() => setShowOnChainOnly(!showOnChainOnly)}
+          >
+            <Blocks className="w-4 h-4" />
+            On-Chain Only
+          </Button>
+
           {/* Category Filters */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
             <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -119,7 +180,7 @@ export default function Marketplace() {
         </motion.div>
 
         {/* Services Grid */}
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="glass-card p-6 animate-pulse">
@@ -143,7 +204,14 @@ export default function Marketplace() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <ServiceCard {...service} onSelect={handleSelectService} />
+                <ServiceCard 
+                  {...service} 
+                  onSelect={handleSelectService}
+                  walletAddress={service.walletAddress}
+                  reputationScore={service.reputationScore}
+                  completedJobs={service.completedJobs}
+                  isOnChain={service.isOnChain}
+                />
               </motion.div>
             ))}
           </div>
@@ -157,9 +225,20 @@ export default function Marketplace() {
           className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
-            { label: 'Active Services', value: services.length },
-            { label: 'Categories', value: categories.length - 1 },
-            { label: 'Avg Cost', value: `${(services.reduce((a, b) => a + b.cost_cro, 0) / services.length || 0).toFixed(3)} CRO` },
+            { 
+              label: 'Active Services', 
+              value: combinedServices.length,
+              icon: Blocks 
+            },
+            { 
+              label: 'On-Chain Agents', 
+              value: stats?.activeAgents || onChainServices.length,
+              icon: Database 
+            },
+            { 
+              label: 'Avg Cost', 
+              value: `${(combinedServices.reduce((a, b) => a + b.cost_cro, 0) / combinedServices.length || 0).toFixed(3)} CRO` 
+            },
             { label: 'Protocol', value: 'x402' },
           ].map((stat) => (
             <div key={stat.label} className="glass-card p-4 text-center">
