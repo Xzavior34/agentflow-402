@@ -3,19 +3,40 @@
  * Cronos Testnet deployment settings
  */
 
-export const CONTRACT_CONFIG = {
-  // Cronos Testnet
-  chainId: 338,
-  chainName: 'Cronos Testnet',
-  rpcUrl: 'https://evm-t3.cronos.org/',
-  explorerUrl: 'https://explorer.cronos.org/testnet',
-  nativeCurrency: {
-    name: 'Test CRO',
-    symbol: 'TCRO',
-    decimals: 18,
+// Network configurations
+export const NETWORK_CONFIGS = {
+  cronosZkEvm: {
+    chainId: 240,
+    chainName: 'Cronos zkEVM Testnet',
+    rpcUrl: 'https://testnet.zkevm.cronos.org',
+    explorerUrl: 'https://explorer.zkevm.cronos.org',
+    nativeCurrency: {
+      name: 'Test CRO',
+      symbol: 'TCRO',
+      decimals: 18,
+    },
   },
+  cronosTestnet: {
+    chainId: 338,
+    chainName: 'Cronos Testnet',
+    rpcUrl: 'https://evm-t3.cronos.org/',
+    explorerUrl: 'https://explorer.cronos.org/testnet',
+    nativeCurrency: {
+      name: 'Test CRO',
+      symbol: 'TCRO',
+      decimals: 18,
+    },
+  },
+} as const;
+
+// Active network (switch between zkEVM and regular testnet)
+const ACTIVE_NETWORK: keyof typeof NETWORK_CONFIGS = 'cronosZkEvm';
+
+export const CONTRACT_CONFIG = {
+  // Use active network config
+  ...NETWORK_CONFIGS[ACTIVE_NETWORK],
   
-  // Contract addresses (update after deployment)
+  // Contract addresses (auto-updated by deploy script)
   addresses: {
     agentMarket: '0x0000000000000000000000000000000000000000', // TODO: Deploy and update
     treasury: '0x0000000000000000000000000000000000000000',
