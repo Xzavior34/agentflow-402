@@ -1,0 +1,35 @@
+{
+  "name": "agentmarket-contracts",
+  "version": "1.0.0",
+  "description": "AgentMarket Protocol - Smart Contracts for Cronos zkEVM",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "deploy:zkevm": "npx hardhat run scripts/deploy.js --network cronosZkEvm",
+    "deploy:testnet": "npx hardhat run scripts/deploy.js --network cronosTestnet",
+    "deploy:mainnet": "npx hardhat run scripts/deploy.js --network cronosMainnet",
+    "seed:market": "npx ts-node scripts/seed-market.ts",
+    "simulate": "npx ts-node scripts/simulate-transaction.ts",
+    "demo": "npm run seed:market && npm run simulate",
+    "test": "npx hardhat test",
+    "clean": "npx hardhat clean"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "ethers": "^6.9.0"
+  },
+  "keywords": [
+    "cronos",
+    "zkevm",
+    "ai-agents",
+    "marketplace",
+    "web3"
+  ],
+  "author": "AgentMarket Team",
+  "license": "MIT"
+}
