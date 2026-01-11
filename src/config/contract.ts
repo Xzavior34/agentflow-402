@@ -38,8 +38,8 @@ export const CONTRACT_CONFIG = {
   
   // Contract addresses (auto-updated by deploy script)
   addresses: {
-    agentMarket: '0x0000000000000000000000000000000000000000', // TODO: Deploy and update
-    treasury: '0x0000000000000000000000000000000000000000',
+    agentMarket: '0x79E32be792330c28Fb97958075bE9cB9e528977e', // TODO: Deploy and update
+    treasury: '0x5B774b97F3e64238A7785744de9C3c7d322083a4',
   },
   
   // Protocol constants (match contract)
