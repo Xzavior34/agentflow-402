@@ -1,4 +1,12 @@
 # AgentMarket 🤖⚡
+## 🔗 Cronos Deployment Proof
+**This project is fully deployed on the Cronos zkEVM Testnet.**
+
+- **Contract Name:** AgentMarket Protocol
+- **Contract Address:** `0x79E32be792330c28Fb97958075bE9cB9e528977e`
+- **Explorer Link:** [View on Cronos Explorer](https://explorer.zkevm.cronos.org/address/0x79E32be792330c28Fb97958075bE9cB9e528977e)
+- **Chain ID:** 240 (Cronos zkEVM Testnet)
+
 ### The Financial Operating System for the Machine Economy on Cronos
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
